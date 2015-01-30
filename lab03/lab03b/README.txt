@@ -18,3 +18,9 @@ Additional information:
 	   e.g.
 	   `mkdir I\ am\ Batman`
 	   will create a  folder named "I am Batman"
+
+
+Lab 3B:
+	Status: 
+		input out redirection is working
+		pipe works for 2 processes

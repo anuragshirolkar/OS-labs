@@ -10,6 +10,7 @@
 #include <wait.h>
 #include <sstream>
 #include <string.h>
+#include <fcntl.h>
 using namespace std;
 
 #define MAXLINE 1000
@@ -38,6 +39,26 @@ vector<vector<string> > split(vector<string> & command) {
 	vector<string> current_command;
 	for (int i = 1; i < command.size(); i++) {
 		if (command[i] == ":::") {
+			commands.push_back(current_command);
+			current_command.clear();
+		}
+		else {
+			current_command.push_back(command[i]);
+		}
+	}
+	if (current_command.size()) commands.push_back(current_command);
+	return commands;
+}
+
+
+/**
+ * splits the string with delimiter and returns a vector of strings
+ */
+vector<vector<string> > split_pipes(vector<string> & command) {
+	vector<vector<string> > commands;
+	vector<string> current_command;
+	for (int i = 0; i < command.size(); i++) {
+		if (command[i] == "|") {
 			commands.push_back(current_command);
 			current_command.clear();
 		}
@@ -142,6 +163,128 @@ int execute_command(vector<string> tokens) {
    	string homes(home);
 
 
+	
+	
+	
+	/**
+	 * Replaces ~ with home directory location
+	 */
+   	for (int i = 0; i< tokens.size(); i++){
+   		if (tokens[i] == "~"){
+   			tokens[i] = homes;
+   		}
+   		else if (tokens[i][0] == '~' && tokens[i][1] == '/'){
+   			tokens[i] = homes + tokens[i].substr(1);
+   		}
+   	}
+	
+
+	/** 
+	 * Takes the tokens from the parser and based on the type of command 
+	 * and proceeds to perform the necessary actions. 
+	 * Returns 0 on success, -1 on failure. 
+	 */
+	if (tokens.size() == 0) {
+	 	return -1 ; 				// Null Command
+	 }
+	if (tokens[0] == "") {
+		return 0 ;					// Empty Command
+	} else if (tokens[0] == "exit") {
+		exit(0);
+		/* Quit the running process */
+		return 0 ;
+	}
+
+	/**
+	 * If the command contains pipelies
+	 */
+
+	if (tokens[0] != "parallel" && tokens[0] != "sequential") {
+		vector<vector<string> > pipe_commands = split_pipes(tokens);
+		if (pipe_commands.size() > 1) {
+			int pfds[2];
+			int save_in = dup(0);
+			int save_out = dup(1);
+
+			pipe(pfds);
+
+			if (!fork()) {
+				close(1); /* close normal stdout */
+				dup(pfds[1]); /* make stdout same as pfds[1] */
+				close(pfds[0]); /* we don't need this */
+				execute_command(pipe_commands[0]);
+				exit(0);
+			} else {
+				close(0); /* close normal stdin */
+				dup(pfds[0]); /* make stdin same as pfds[0] */
+				close(pfds[1]); /* we don't need this */
+				execute_command(pipe_commands[1]);
+				waitpid(-1,NULL,0);
+				dup2(save_in, 0);
+				dup2(save_out, 1);
+			}
+
+			
+			// int save_in, save_out;
+			// save_in = dup(0);
+			// save_out = dup(1);
+			// int pipes[2];
+			// int pid = fork();
+			// cerr << "pid : " << pid << endl;
+			// if (pid == 0) {
+			// 	dup2(pipes[0], 0);
+			// 	close(pipes[1]);
+			// 	execute_command(pipe_commands[0]);
+			// 	exit(0);
+			// }
+			// else {
+			// 	dup2(pipes[1], 1);
+			// 	close(pipes[0]);
+			// 	cout << "executing second " << endl;
+			// 	int result = execute_command(pipe_commands[1]);
+			// 	cerr  << "result : " << result << endl;
+			// 	waitpid(-1, NULL, 0);
+			// 	close(pipes[0]);
+			// 	close(pipes[1]);
+			// }
+			// dup2(save_in, 0);
+			// dup2(save_out, 1);
+			// cout << flush;
+			// return 0;
+		}
+		// 	int pipes[2*(pipe_commands.size()-1)];
+		// 	for (int i = 0; i < pipe_commands.size(); i++) {
+		// 		//cerr << i <<  " " << dup(0)  << " " << dup(1) << endl;
+		// 		if (i) {
+		// 			dup2(pipes[2*(i-1)],0);
+		// 		}
+		// 		else {
+		// 			dup2(save_in, 0);
+		// 		}
+		// 		if (i != pipe_commands.size()-1) {
+		// 			pipe(pipes+(2*i));
+		// 			dup2(pipes[2*i+1],1);
+		// 		}
+		// 		else{
+		// 			dup2(save_out, 1);
+		// 		}
+		// 		int result = execute_command(pipe_commands[i]);
+		// 		if (i < pipe_commands.size() - 1) close(pipes[2*i+1]);
+		// 		if (i) close(pipes[2*(i-1)]);
+		// 		//cerr << i <<  " " << dup(0)  << " " << dup(1) << endl;
+		// 		if (result == -1) {
+		// 			cerr << "exiting" << endl;
+		// 			dup2(save_in, 0);
+		// 			dup2(save_out, 1);
+		// 			return -1;
+		// 		}
+		// 	}
+		// 	dup2(save_in, 0);
+		// 	dup2(save_out, 1);
+		// 	return 0;
+		// }
+	}
+	
 	/**
 	 * For input file redirection
 	 * infile = name of the file to take input from
@@ -176,36 +319,7 @@ int execute_command(vector<string> tokens) {
 		}
 	}
 	
-	
-	
-	/**
-	 * Replaces ~ with home directory location
-	 */
-   	for (int i = 0; i< tokens.size(); i++){
-   		if (tokens[i] == "~"){
-   			tokens[i] = homes;
-   		}
-   		else if (tokens[i][0] == '~' && tokens[i][1] == '/'){
-   			tokens[i] = homes + tokens[i].substr(1);
-   		}
-   	}
-	
-
-	/** 
-	 * Takes the tokens from the parser and based on the type of command 
-	 * and proceeds to perform the necessary actions. 
-	 * Returns 0 on success, -1 on failure. 
-	 */
-	if (tokens.size() == 0) {
-	 	return -1 ; 				// Null Command
-	 }
-	if (tokens[0] == "") {
-		return 0 ;					// Empty Command
-	} else if (tokens[0] == "exit") {
-		exit(0);
-		/* Quit the running process */
-		return 0 ;
-	} else if (tokens[0] == "cd") {
+	if (tokens[0] == "cd") {
 		
 		if (tokens.size() < 2){
 			tokens.push_back(homes);
@@ -254,6 +368,7 @@ int execute_command(vector<string> tokens) {
 	} else {
 		/* Either file is to be executed or batch file to be run */
 		/* Child process creation (needed for both cases) */
+		int save_in = dup(0), save_out = dup(1);
 		int pid = fork() ;
 		if (pid == -1) return -1;
 		if (pid == 0) {
@@ -277,7 +392,26 @@ int execute_command(vector<string> tokens) {
 				exit (0) ;
 			}
 			else {
-				
+
+				if (infile != "") {
+					int in = open(infile.c_str(), O_RDONLY);
+					if (in == -1) {
+						cerr << "Error while reading from input file " << infile << endl;
+						exit(-1);
+					}
+					dup2(in, 0);
+					
+				}
+				if (outfile != "") {
+					int out;
+					if (append_output) out = open(outfile.c_str(), O_WRONLY | O_APPEND | O_CREAT , 0777);
+					else out = open(outfile.c_str(), O_WRONLY | O_TRUNC | O_CREAT , 0777);
+					if (out == -1) {
+						cerr << "Error while redirecting to output file " << outfile << endl;
+						exit(-1);
+					}
+					dup2(out, 1);
+				}
 				// Uses execvp function to find the file from PATH variables execute it with given arguments
 				const char **argv = new const char* [tokens.size()+2];   // extra room for program name and sentinel
 			    for (int j = 0;  j < tokens.size()+1;  ++j)     // copy args
@@ -302,6 +436,8 @@ int execute_command(vector<string> tokens) {
 			/* Wait for child process to complete */
 			int status;
 			waitpid(pid, &status, 0);
+			dup2(save_in, 0);
+			dup2(save_out, 1);
 			if (status == 0){
 				return 0;
 			}
