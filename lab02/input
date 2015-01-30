@@ -1,0 +1,7 @@
+add_email a@g.com
+add_email b@g.com
+add_email a@g.com
+add_email b@y.com
+delete_email c@g.com
+send_email a@g.com b@y.com this_is_email_text
+stop a

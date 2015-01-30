@@ -1,0 +1,8 @@
+ls
+pwd
+run test2.run
+ls ~
+cd ~/Desktop
+parallel ls ::: cd ~ ::: echo "I am Batman" ::: mkdir jash_test
+sequential ls ::: cd ~/ ::: sleep 10
+man scope

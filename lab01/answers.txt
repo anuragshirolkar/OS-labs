@@ -1,0 +1,161 @@
+CS347: Lab Assignment 1
+Roll Numbers:
+    a. 120050003 - Anurag Shirolkar
+    b. 120050033 - Dheerendra Singh Rathor
+
+question 1:
+===========
+a : cache size      = 3072 KB
+    address size    = phy : 36 bits
+                      virtual : 48 bits
+
+b : cpufamily       = 6
+    model           = 58
+    model name      = Intel(R) Core(TM) i5-3210M CPU @ 2.50GHz
+
+c : file-max    = soft limit    : 1024
+                  hard limit    : 4096
+                  (source : /proc/[pid]/limits)
+
+d : process preemption
+    process premption means stopping an executing process to alot
+    the cpu to some other process. Preemptive mutitasking creates
+    an illusion of executing multiple processes on a single processor
+    while in reality each process is alotted a time slice.
+    The main advantage of preemptive multitasking is that the processor
+    doesn't have to stay idle while making syscalls.
+
+question 2:
+===========
+for the first program the number of loops were small
+so the process would go into sleep mode in less than 1 clock ticks
+
+So we increased the loop 10000 times. Now time spent in
+user mode   : 1508 clock ticks = 15 seconds
+kernel mode : 6 clock ticks = 0.06 seconds
+
+for the second program time spent in
+user mode   : 10461 clock ticks = 104.6 seconds
+kernel mode : 7 clock ticks = 0.07 seconds
+
+We wrote a small c program to find the number of clock ticks per seconds
+    "printf("%li\n", sysconf(_SC_CLK_TCK));"
+
+question 3:
+===========
+(a) One character from the string "RSDZTW"  where  R
+    is  running, S is sleeping in an interruptible wait,
+    D is waiting in uninterruptible  disk  sleep,  Z  is
+    zombie,  T is traced or stopped (on a signal), and W
+    is paging.
+
+(b)
+    child 1:
+        child1 is empty function
+    
+    child 2:
+        child2 sleeps for 1000 seconds
+    
+    child 3:
+        child3 runs in the loop of 1000000000
+
+before invoking waitpid in parent process we made the parent process sleep for 1000 seconds
+so that child1 is in zombie state.
+
+states of all the child processes while running
+process | state
+--------+-----------
+child1  | Z+ (zombie)
+child2  | S+ (sleeping)
+child3  | R+ (running)
+
+Modified code is written in ques3.cpp file.
+                            *********
+
+(c)
+    To get process in Traced (Stopped) state, we used Signal Ctrl + Z while running the process
+    
+
+
+question 4:
+===========
+niceness :  first = +5
+            second = +11
+a : count of a's
+    first   : 603668509
+    second  : 572034867
+
+b :
+
+c : (source : /proc/[pid]/sched)
+process | involuntary switches  | voluntary switches
+--------+-----------------------+-------------------
+first   | 4819                  | 404
+second  | 6404                  | 398
+
+
+niceness :  first = +20
+            second = +11
+
+a : count of a's
+    first   : 517490998
+    second  : 617666928
+
+c : (source : /proc/[pid]/sched)
+process | involuntary switches  | voluntary switches
+--------+-----------------------+-------------------
+first   | 3136                  | 268
+second  | 2829                  | 429
+
+
+Question 5:
+===========
+
+Load Average: Load average is the average number of processes running on CPU in last some time. For example: /proc/loadavg gives average cpu load in last minute, last 5 minutes and last 15 minutes
+
+Source: /proc/loadavg
+
+load avg before and after running ques5.c
+Index     | past minute | past 5 minutes | past 15 minutes
+----------+-------------+----------------+----------------
+Before    | 0.27        | 0.44           | 0.62
+After 30s | 0.71        | 0.49           | 0.63
+After 60s | 0.96        | 0.64           | 0.65
+
+The load after of past minute is increased sharply and also load average of last 5 minutes is increased significantly and load average of last 15 minutes is increased slighty.
+
+Reason: In last 1 minute processes that are running is  ques5.out and some system process, which contributed significantly to past minute load average.
+In last 5 minute average, the increase in load average is contributed by ques5.out heavily, but average of last 15 minutes is not affected much
+
+Modified Program:
+To increase load average significantly, we have to increase number of processes. So increase number of processes we created fork of main program thrice by
+
+'''
+int a = fork();
+int b = fork();
+int c = fork();
+'''
+
+This way there are total 8 processes are created and and this was reflected in the /proc/loadavg file.
+
+New load avg after running new ques5.c 
+Index       | last minute   | last 5 minutes    | last 15 minute
+----------------+---------------+-----------------------+----------------
+start       | 0.37      | 0.37          | 0.48
+after 30s   | 3.46      | 1.11          | 0.73
+after 60s   | 5.41      | 1.82          | 0.97
+after 90s   | 6.43      | 2.41          | 1.20
+after 120s  | 7.05      | 2.94          | 1.41
+
+Modified program is written in the file ques51.c.
+                                        ********
+
+Question 6:
+===========
+
+source: /proc/[pid]/status
+
+Signal caught: SigCgt: 0000000000000080
+SigCgt Binary: 10000000
+Signal value: SIGFPE
+
