@@ -24,3 +24,23 @@ Data Structures
 * freeList
 * freeListEntry
 * pageFaultHandler
+
+
+Sequences
+=========
+primary thread reads the init file
+creates page fault handler, free frames manager, page io manager
+free list manager is initially blocked and free list is full
+starts first process
+page fault for first page of first process
+page fault handler takes out a page from the free list and allocates
+
+when free list size is greater than upper_threshold free frames manager blocks itself
+when free list size is lesser than lower_threshold free frames manager is unblocked
+
+when page fault occurs,
+page fault handler is invoked
+page fault handler takes out a free frame from free list
+if the size of free list drops below lower_threshold free frames manager is invoked
+free frames manager creates a free frame by page out (if required)
+page fault handler 

@@ -1,0 +1,4 @@
+Memory_size 100
+Lower_threshold 10
+Upper_threshold 20
+Create 1 15
