@@ -1,0 +1,65 @@
+1: attempted to access 0 100
+Reported a page fault
+Loaded page 0 into frame 0
+Accessed page frame number 0
+1: attempted to access 2 199
+Reported a page fault
+Loaded page 2 into frame 1
+Accessed page frame number 1
+1: attempted to access 3 100
+Reported a page fault
+Loaded page 3 into frame 2
+Accessed page frame number 2
+1: attempted to access 1 50
+Reported a page fault
+Removed page 0 from frame 0
+Loaded page 1 into frame 0
+Accessed page frame number 0
+1: attempted to access 5 100
+Reported memory protection violation
+1: attempted to modify 0 100
+Reported a page fault
+Removed page 1 from frame 1
+Loaded page 0 into frame 1
+Accessed page frame number 1
+2: attempted to access 0 100
+Reported a page fault
+Loaded page 0 into frame 3
+Accessed page frame number 3
+2: attempted to access 1 100
+Reported a page fault
+Loaded page 1 into frame 4
+Accessed page frame number 4
+2: attempted to access 2 100
+Reported a page fault
+Loaded page 2 into frame 5
+Accessed page frame number 5
+2: attempted to access 3 100
+Reported a page fault
+Loaded page 3 into frame 6
+Accessed page frame number 6
+2: attempted to access 4 100
+Reported a page fault
+Loaded page 4 into frame 7
+Accessed page frame number 7
+2: attempted to access 5 100
+Reported a page fault
+Loaded page 5 into frame 8
+Accessed page frame number 8
+2: attempted to access 11 100
+Reported memory protection violation
+2: attempted to access 7 100
+Reported a page fault
+Removed page 3 from frame 3
+Loaded page 7 into frame 3
+Accessed page frame number 3
+2: attempted to access 0 100
+Reported a page fault
+Removed page 4 from frame 4
+Loaded page 0 into frame 4
+Accessed page frame number 4
+2: attempted to access 1 100
+Reported a page fault
+Removed page 5 from frame 5
+Loaded page 1 into frame 5
+Accessed page frame number 5

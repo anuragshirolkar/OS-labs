@@ -1,0 +1,11 @@
+PID :: 1 TIME :: 3 EVENT :: Process Admitted
+PID :: 1 TIME :: 3 EVENT :: Process dispatched
+PID :: 2 TIME :: 11 EVENT :: Process Admitted
+PID :: 2 TIME :: 11 EVENT :: Process dispatched
+PID :: 1 TIME :: 13 EVENT :: Time slice completed
+PID :: 2 TIME :: 15 EVENT :: IO burst completed
+PID :: 2 TIME :: 15 EVENT :: Process dispatched
+PID :: 2 TIME :: 21 EVENT :: IO burst completed
+PID :: 2 TIME :: 21 EVENT :: Process dispatched
+PID :: 2 TIME :: 29 EVENT :: IO burst completed
+PID :: 2 TIME :: 29 EVENT :: Process completed

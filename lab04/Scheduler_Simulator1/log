@@ -1,0 +1,26 @@
+PID :: 1 TIME :: 3 EVENT :: Process Admitted
+PID :: 1 TIME :: 3 EVENT :: Process dispatched
+PID :: 2 TIME :: 11 EVENT :: Process Admitted
+PID :: 2 TIME :: 11 EVENT :: Process dispatched
+PID :: 1 TIME :: 15 EVENT :: IO burst completed
+PID :: 1 TIME :: 15 EVENT :: Process dispatched
+PID :: 2 TIME :: 15 EVENT :: IO burst completed
+PID :: 2 TIME :: 15 EVENT :: Process dispatched
+PID :: 2 TIME :: 21 EVENT :: IO burst completed
+PID :: 2 TIME :: 21 EVENT :: Process dispatched
+PID :: 2 TIME :: 27 EVENT :: IO burst completed
+PID :: 2 TIME :: 27 EVENT :: Process dispatched
+PID :: 2 TIME :: 33 EVENT :: IO burst completed
+PID :: 2 TIME :: 33 EVENT :: Process dispatched
+PID :: 1 TIME :: 37 EVENT :: IO burst completed
+PID :: 1 TIME :: 37 EVENT :: Process dispatched
+PID :: 2 TIME :: 41 EVENT :: IO burst completed
+PID :: 2 TIME :: 41 EVENT :: Process dispatched
+PID :: 2 TIME :: 49 EVENT :: IO burst completed
+PID :: 2 TIME :: 49 EVENT :: Process dispatched
+PID :: 2 TIME :: 57 EVENT :: IO burst completed
+PID :: 2 TIME :: 57 EVENT :: Process dispatched
+PID :: 1 TIME :: 59 EVENT :: IO burst completed
+PID :: 1 TIME :: 59 EVENT :: Process completed
+PID :: 2 TIME :: 65 EVENT :: IO burst completed
+PID :: 2 TIME :: 65 EVENT :: Process completed

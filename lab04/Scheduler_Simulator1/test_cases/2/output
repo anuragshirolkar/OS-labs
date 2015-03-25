@@ -1,0 +1,30 @@
+0 current pid
+PID :: 1 TIME :: 3 EVENT :: Process Admitted
+PID :: 1 TIME :: 3 EVENT :: Process dispatched
+1 current pid
+entered here
+PID :: 1 TIME :: 8 EVENT :: Time slice completed
+error jere 2
+PID :: 1 TIME :: 8 EVENT :: Process dispatched
+1 current pid
+cpu completed 10 1 2 2
+PID :: 1 TIME :: 10 EVENT :: CPU burst completed
+PID :: 1 TIME :: 10 EVENT :: IO started
+1 added to io
+-1 next pid printed
+1 current pid
+PID :: 2 TIME :: 11 EVENT :: Process Admitted
+PID :: 2 TIME :: 11 EVENT :: Process dispatched
+2 current pid
+PID :: 1 TIME :: 13 EVENT :: IO burst completed
+2 current pid
+cpu completed 15 2 4 4
+PID :: 2 TIME :: 15 EVENT :: CPU burst completed
+PID :: 2 TIME :: 15 EVENT :: IO started
+2 added to io
+1 next pid printed
+PID :: 1 TIME :: 15 EVENT :: Process dispatched
+1 current pid
+PID :: 2 TIME :: 20 EVENT :: IO burst completed
+1 current pid
+entered here

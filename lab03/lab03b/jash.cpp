@@ -11,6 +11,11 @@
 #include <sstream>
 #include <string.h>
 #include <fcntl.h>
+#include <set>
+#include  <sys/types.h>
+#include  <sys/ipc.h>
+#include  <sys/shm.h>
+#include <time.h>
 using namespace std;
 
 #define MAXLINE 1000
@@ -19,7 +24,10 @@ using namespace std;
 /* Function declarations and globals */
 int parent_pid ;
 vector<string> tokenize(string);
-int execute_command(vector<string>) ;
+int execute_command(vector<string>);
+set<int>background;
+
+int *sh_current_processes;
 
 // Helper function for function below
 vector<string> &split(const string &s, char delim, vector<string> &elems) {
@@ -86,8 +94,54 @@ void handler(int dummy){
 	}
 }
 
+void bye(){
+	if (getpid() == parent_pid) {
+		int current_count = sh_current_processes[0];
+		cout << "Exiting the following processes : ";
+		for (int i = 1; i < 2*current_count; i+=2) if (sh_current_processes[i+1] > 0) {
+				killpg(sh_current_processes[i+1], SIGTERM);
+				cout << sh_current_processes[i] << " ";
+			}
+		cout << endl;
+	}
+}
+
+
+int stringToInt(string s){
+	int i = 0;
+	if (s=="*"){
+		return -1;
+	}
+	for (int j = 0; j< s.length(); j++){
+		if (s[j] > '9' || s[j] < '0'){
+			return -1;
+		}
+		i = i*10 + s[j] - '0';
+	}
+	return i;
+}
+
+static void process_end_handler (int sig, siginfo_t *siginfo, void *context) {
+	cout << "Finished the process : " << siginfo->si_pid << endl;
+}
+
+
+
 int main()
 {
+	struct sigaction act;
+	memset (&act, '\0', sizeof(act));
+	act.sa_sigaction = &process_end_handler;
+	act.sa_flags = SA_SIGINFO;
+	sigaction(SIGUSR1, &act, NULL);
+
+	int shmid;
+	shmid =  shmget(IPC_PRIVATE, 1000*sizeof(int), IPC_CREAT | 0666);
+	sh_current_processes = (int*)shmat(shmid, NULL, 0);
+	sh_current_processes[0] = 0;
+	sh_current_processes[1] = 0;
+	
+	atexit(bye);
 	// assigning handler functions
 	signal(SIGINT, handler);
 	signal(SIGQUIT, handler);
@@ -163,7 +217,16 @@ int execute_command(vector<string> tokens) {
    	string homes(home);
 
 
-	
+	/**
+	 * printing previously done processes
+	 */
+	int current_count = sh_current_processes[0];
+	for (int i = 1; i < 2*current_count; i+=2) {
+		if (sh_current_processes[i+1] == 0) {
+			cout << "Done               " << sh_current_processes[i] << endl;
+			sh_current_processes[i+1] = -10;
+		}
+	}
 	
 	
 	/**
@@ -194,95 +257,198 @@ int execute_command(vector<string> tokens) {
 		/* Quit the running process */
 		return 0 ;
 	}
+	if (tokens[0] == "cron"){
 
+		FILE* fp = fopen(tokens[1].c_str(), "r");
+		if (fp == NULL){
+			perror("Error ");
+			fclose(fp);
+			return -1;
+		}
+		while ((read = getline(&line, &len, fp)) != -1) {
+           tokens = tokenize(line);
+
+           int pid = fork();
+
+           if (pid == 0){
+           		setsid();
+           		int ch = stringToInt(tokens[1]);
+           		int cm = stringToInt(tokens[0]);
+           		time_t raw_time = time(NULL);
+	           	struct tm *tm_struct = localtime(&raw_time);
+	           	int hour = tm_struct->tm_hour;
+	           	int minutes = tm_struct->tm_min;
+	           	int sec = tm_struct->tm_sec;
+
+	           	vector<string> newTokens(tokens.begin() + 2, tokens.end());
+
+	           	if (ch == -1){
+	           		if (cm == -1){
+	           			sleep(60-sec);
+	           			execute_command(newTokens);
+	           			while(1){
+	           				sleep(60);
+	           				execute_command(newTokens);
+	           			}
+	           		}
+	           		else {
+	           			if (cm > minutes){
+	           				sleep(60*(cm-minutes) - sec);
+	           				execute_command(newTokens);
+	           			}
+	           			else{
+	           				int temp = 60-minutes + cm;
+	           				sleep(60*temp-sec);
+	           				execute_command(newTokens);
+	           			}
+	           			while(1){
+	           				sleep(3600);
+	           				execute_command(newTokens);
+	           			}
+	           		}
+	           	}
+	           	else{
+	           		if (cm == -1){
+	           			if (ch == hour){
+
+	           				while(1){
+		           				int diff = 60 - minutes;
+		           				int i=1;
+		           				sleep(60-sec);
+		           				execute_command(newTokens);
+		           				while(i< diff){
+		           					sleep(60);
+		           					execute_command(newTokens);
+		           					i++;
+		           				}
+		           				minutes = 0;
+		           				sleep(23*3600);
+		           			}
+	           			}
+	           			else{
+	           				int waith;
+	           				if (ch < hour){
+	           					waith = 24 - (hour - ch);
+	           				}
+	           				else{
+	           					waith = ch - hour;
+	           				}
+	           				int seconds = waith*3600;
+	           				seconds = seconds - minutes * 60 - sec - 60;
+	           				sleep(seconds);
+	           				while(1){
+		           				int i=0;
+		           				while (i< 60){
+		           					sleep(60);
+		           					execute_command(newTokens);
+		           					i++;
+		           				}
+		           				sleep(23*3600);
+		           			}
+	           			}
+
+	           		}
+
+	           		else{
+	           			if (ch == hour){
+	           				if (cm > minutes){
+	           					int waith = 60*(cm - minutes) - sec;
+	           					sleep(waith);
+	           				}
+	           				else {
+	           					int waith;
+	           					waith = 24*3600 - sec - 60*(minutes - cm);
+	           					sleep(waith);
+	           				}
+	           			}
+	           			else if (ch > hour){
+	           				int waith;
+	           				waith = 3600*(ch - hour) + 60*cm - 60*(minutes) - sec;
+	           				sleep(waith);
+	           			}
+	           			else{
+	           				int waith;
+	           				waith = 24*3600 - 60 * minutes - sec - 3600*(hour - ch) + 60 * cm;
+	           				sleep(waith);
+	           			}
+	           			execute_command(newTokens);
+	           			while(1){
+	           				sleep(24*3600);
+	           				execute_command(newTokens);
+	           			}
+
+	           		}
+
+	           	}
+
+           		exit(0);
+           }
+           else{
+			   int current_count = sh_current_processes[0];
+			   sh_current_processes[current_count*2+1] = pid;
+			   sh_current_processes[current_count*2+2] = pid;
+			   sh_current_processes[0]++;
+           }
+
+       	}
+       	fclose(fp);
+
+		return 0;
+	}
+	else if (tokens[tokens.size()-1] == "&"){
+		int pid = fork();
+		if (pid == 0){
+			setsid();
+			tokens.pop_back();
+			int result = execute_command(tokens);
+			set<int>::iterator it = background.find(getpid());
+			//kill(getppid(), SIGUSR1);
+			int current_count = sh_current_processes[0];
+			for (int i = 1; i <= 2*current_count; i+=2) {
+				if (sh_current_processes[i] == result) {
+					sh_current_processes[i+1] = 0;
+					break;
+				}
+			}
+			exit(0);
+		}
+		else{
+			background.insert(pid);
+			return 0;
+		}
+	}
 	/**
 	 * If the command contains pipelies
 	 */
 
 	if (tokens[0] != "parallel" && tokens[0] != "sequential") {
 		vector<vector<string> > pipe_commands = split_pipes(tokens);
+		/**
+		 * Works with any number of pipelines :)
+		 */
 		if (pipe_commands.size() > 1) {
-			int pfds[2];
+			int pipes[2*pipe_commands.size()-2];
 			int save_in = dup(0);
 			int save_out = dup(1);
-
-			pipe(pfds);
-
-			if (!fork()) {
-				close(1); /* close normal stdout */
-				dup(pfds[1]); /* make stdout same as pfds[1] */
-				close(pfds[0]); /* we don't need this */
-				execute_command(pipe_commands[0]);
-				exit(0);
-			} else {
-				close(0); /* close normal stdin */
-				dup(pfds[0]); /* make stdin same as pfds[0] */
-				close(pfds[1]); /* we don't need this */
-				execute_command(pipe_commands[1]);
-				waitpid(-1,NULL,0);
-				dup2(save_in, 0);
-				dup2(save_out, 1);
+			vector<int> pids;
+			for (int i = 0; i < pipe_commands.size()-1; i++) pipe(pipes+2*i);
+			for (int i = 0; i < pipe_commands.size(); i++) {
+				int pid = fork();
+				if (pid == 0) {
+					if (i) dup2(pipes[2*(i-1)], 0);
+					else dup2(save_in, 0);
+					if (i < pipe_commands.size()-1) dup2(pipes[2*i+1], 1);
+					else dup2(save_out, 1);
+					for (int j = 0; j < 2*pipe_commands.size()-2; j++) close(pipes[j]);
+					execute_command(pipe_commands[i]);
+					exit(0);
+				}
 			}
-
-			
-			// int save_in, save_out;
-			// save_in = dup(0);
-			// save_out = dup(1);
-			// int pipes[2];
-			// int pid = fork();
-			// cerr << "pid : " << pid << endl;
-			// if (pid == 0) {
-			// 	dup2(pipes[0], 0);
-			// 	close(pipes[1]);
-			// 	execute_command(pipe_commands[0]);
-			// 	exit(0);
-			// }
-			// else {
-			// 	dup2(pipes[1], 1);
-			// 	close(pipes[0]);
-			// 	cout << "executing second " << endl;
-			// 	int result = execute_command(pipe_commands[1]);
-			// 	cerr  << "result : " << result << endl;
-			// 	waitpid(-1, NULL, 0);
-			// 	close(pipes[0]);
-			// 	close(pipes[1]);
-			// }
-			// dup2(save_in, 0);
-			// dup2(save_out, 1);
-			// cout << flush;
-			// return 0;
+			for (int i = 0; i < 2*pipe_commands.size()-2; i++) close(pipes[i]);
+			int status;
+			for (int i = 0; i < pipe_commands.size(); i++) wait(&status);
+			return 0;
 		}
-		// 	int pipes[2*(pipe_commands.size()-1)];
-		// 	for (int i = 0; i < pipe_commands.size(); i++) {
-		// 		//cerr << i <<  " " << dup(0)  << " " << dup(1) << endl;
-		// 		if (i) {
-		// 			dup2(pipes[2*(i-1)],0);
-		// 		}
-		// 		else {
-		// 			dup2(save_in, 0);
-		// 		}
-		// 		if (i != pipe_commands.size()-1) {
-		// 			pipe(pipes+(2*i));
-		// 			dup2(pipes[2*i+1],1);
-		// 		}
-		// 		else{
-		// 			dup2(save_out, 1);
-		// 		}
-		// 		int result = execute_command(pipe_commands[i]);
-		// 		if (i < pipe_commands.size() - 1) close(pipes[2*i+1]);
-		// 		if (i) close(pipes[2*(i-1)]);
-		// 		//cerr << i <<  " " << dup(0)  << " " << dup(1) << endl;
-		// 		if (result == -1) {
-		// 			cerr << "exiting" << endl;
-		// 			dup2(save_in, 0);
-		// 			dup2(save_out, 1);
-		// 			return -1;
-		// 		}
-		// 	}
-		// 	dup2(save_in, 0);
-		// 	dup2(save_out, 1);
-		// 	return 0;
-		// }
 	}
 	
 	/**
@@ -296,14 +462,26 @@ int execute_command(vector<string> tokens) {
 	if (tokens[0] != "parallel" && tokens[0] != "sequential") {
 		for (int i = 0; i < tokens.size(); i++) {
 			if (tokens[i] == "<") {
+				if (infile != "") {
+					cout << "More than one input files." << endl;
+					return -1;
+				}
 				infile = tokens[i+1];
 				i++;
 			}
 			else if(tokens[i] == ">") {
+				if (outfile != "") {
+					cout << "More than one output redirection files." << endl;
+					return -1;
+				}
 				outfile = tokens[i+1];
 				append_output = false;
 			}
 			else if(tokens[i] == ">>") {
+				if (outfile != "") {
+					cout << "More than one output redirection files." << endl;
+					return -1;
+				}
 				outfile = tokens[i+1];
 				append_output = true;
 			}
@@ -392,7 +570,11 @@ int execute_command(vector<string> tokens) {
 				exit (0) ;
 			}
 			else {
-
+				if (getppid() != parent_pid){
+					int current_count = sh_current_processes[0]++;
+					sh_current_processes[2*current_count+1] = getpid();
+					sh_current_processes[2*current_count+2] = getppid();
+				}
 				if (infile != "") {
 					int in = open(infile.c_str(), O_RDONLY);
 					if (in == -1) {
@@ -413,20 +595,20 @@ int execute_command(vector<string> tokens) {
 					dup2(out, 1);
 				}
 				// Uses execvp function to find the file from PATH variables execute it with given arguments
-				const char **argv = new const char* [tokens.size()+2];   // extra room for program name and sentinel
+				const char **argv = new const char* [tokens.size()+1];   // extra room for program name and sentinel
 			    for (int j = 0;  j < tokens.size()+1;  ++j)     // copy args
 			            argv [j] = tokens[j] .c_str();
 
 			    argv [tokens.size()] = NULL;
-
+				
 				error = execvp(tokens[0].c_str(), (char**) argv);
 
 				if (error == -1){
 					cerr<<"Command "<<tokens[0]<<" not found"<<endl;
-					deallocated(argv, tokens.size() + 2);
+					deallocated(argv, tokens.size() + 1);
 					exit(-1);
 				}
-				deallocated(argv, tokens.size() + 2);
+				deallocated(argv, tokens.size() + 1);
 				exit(0);
 			}
 		}
@@ -439,7 +621,7 @@ int execute_command(vector<string> tokens) {
 			dup2(save_in, 0);
 			dup2(save_out, 1);
 			if (status == 0){
-				return 0;
+				return pid;
 			}
 			return -1;
 		}

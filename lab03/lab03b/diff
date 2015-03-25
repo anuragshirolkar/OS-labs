@@ -1,0 +1,16 @@
+99d98
+< 		cout << "Exiting the following processes : ";
+100a100
+> 		cout << "Exiting the following processes : ";
+141a142
+> 	sh_current_processes[1] = 0;
+572,574c573,577
+< 				int current_count = sh_current_processes[0]++;
+< 				sh_current_processes[2*current_count+1] = getpid();
+< 				sh_current_processes[2*current_count+2] = getppid();
+---
+> 				if (getppid() != parent_pid){
+> 					int current_count = sh_current_processes[0]++;
+> 					sh_current_processes[2*current_count+1] = getpid();
+> 					sh_current_processes[2*current_count+2] = getppid();
+> 				}

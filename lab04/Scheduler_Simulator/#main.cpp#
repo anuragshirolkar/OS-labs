@@ -1,0 +1,31 @@
+#include <iostream>
+#include "event_manager.h"
+#include "scheduler.cpp"
+
+using namespace std;
+
+event_mgnr em;
+
+scheduler Scheduler;
+vector<process> p_list;
+
+int main()
+{
+	
+	handling_PROCESS_SPEC_file();
+	handling_SCHEDULER_SPEC_file();
+	//processing events
+	event next;
+	while (!em.is_empty()) {
+		next = em.next_event();
+		switch(next.type)
+		{	
+			//routine for handling process admission event
+		case 1:
+			break;
+			//Define routines for other required events here.
+
+		}
+	}
+	return 0;
+}

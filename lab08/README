@@ -1,0 +1,26 @@
+#+TITLE: OS Lab08
+#+AUTHOR: Anurag Shirolkar (120050003), Dheerendra Rathor (120050033)
+
+Globals
+=======
+1. processes
+2. page_io_manager
+3. free_frames_manager
+4. page_fault_hander
+5. free_list
+6. io_table
+
+
+Data Structures
+===============
+* primaryThread
+* process
+* pageTable
+* pageTableEntry
+* pageIOManager
+* IOTable
+* IOTableEntry
+* freeFramesManager
+* freeList
+* freeListEntry
+* pageFaultHandler

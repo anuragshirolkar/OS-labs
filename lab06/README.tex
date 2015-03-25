@@ -1,0 +1,108 @@
+% Created 2015-03-01 Sun 17:20
+\documentclass[11pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{soul}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\providecommand{\alert}[1]{\textbf{#1}}
+
+\title{OS Lab 05}
+\author{Anurag Shirolkar (120050003) Dheerendra Rathor (120050033)}
+\date{\today}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs Org-mode version 7.9.3f}}
+
+\begin{document}
+
+\maketitle
+
+\setcounter{tocdepth}{3}
+\tableofcontents
+\vspace*{1cm}
+\section{Question 1}
+\label{sec-1}
+
+\begin{enumerate}
+\item 
+\begin{enumerate}
+\item where to put the user program : in the directory src/user
+\item execute following commands
+\begin{itemize}
+\item make (in the build directory)
+\item geek
+\item <name of the program> (in the geek terminal)
+\end{itemize}
+\item the header files in the directory \textbf{include/libc} can be used in the user programs
+\end{enumerate}
+\item 
+\begin{enumerate}
+\item what is the purpose?
+
+\begin{center}
+\begin{tabular}{ll}
+ file       &  purpose                                                \\
+\hline
+ syscall.h  &  declarations of all the systemcalls                    \\
+ syscall.c  &  definition of the systemcalls declared in syscall.h    \\
+ conio.h    &  declaration of all the console input/output functions  \\
+ conio.c    &  definitions of the functions declared in conio.h       \\
+\end{tabular}
+\end{center}
+
+
+\item to add new syscall 
+      add the syscall to the enum which has list of all the syscalls
+      write the declaration in the syscall.h file
+      write the definition in the syscall.c file
+\end{enumerate}
+\item In the wrapper of the syscall function the last argument is of the form \\
+\textbf{SYSCALL\_{}REGS_<i>}   \\
+     where i is the number of parameters in the system call
+\item There is a structure \textbf{kernel\_{}thread} defined in the file \textbf{include/geekos/kthread.h}
+     that structure has a member \textbf{int pid}. The current\_{}thread variable in the syscall.c
+     file is the pointer to the structure of current thread which contains the pid member.
+\begin{enumerate}
+\item 
+\end{enumerate}
+\end{enumerate}
+\section{Question 2}
+\label{sec-2}
+
+  In the geek terminal Type the following command : \\
+  \textbf{\$ q2} \\
+  The input will be read till \textbf{@} and printed to the console.
+    
+\section{Question 3}
+\label{sec-3}
+
+  In the geek terminal Type the following command : \\
+  \textbf{\$ q3}\\
+  produces the following output
+\begin{quote}
+Output from old get time of day syscall : <time> \\
+Output from new get time of day syscall : <time>
+\end{quote}
+\section{Question 4}
+\label{sec-4}
+
+  Created a new member \textbf{sys\_{}call\_{}count} in the kthread.h
+  which is initialized as 0 in kthread.c. Whenever the syscall handler
+  in \textbf{trap.c} is called the \textbf{sys\_{}call\_{}count} of the \textbf{CURRENT\_{}THREAD}
+  variable is incremented. Defined a new syscall which returns the count
+  of syscalls from CURRENT\_{}THREAD.\\
+  Similar method used for file count.
+
+\end{document}

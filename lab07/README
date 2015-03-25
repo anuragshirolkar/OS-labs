@@ -1,0 +1,42 @@
+#+TITLE: OS Lab Assignment 07
+#+AUTHOR: Anurag Shirolkar (120050003), Dheerendra Rathor (120050033)
+
+to run
+======
+$ g++ -std=c++11 -pthread main.cpp
+$ ./a.out
+
+* Data structures
+
+** Primary Thread
+   A. Members
+	  1. No. of Processes
+	  2. Map : (Process id) -> (Process*)
+   B. Methods
+	  1. Create Process : (pid, size, frame_min, frame_max) -> (Process*)
+
+** Process
+   A. Members
+	  1. id
+	  2. Process size
+	  3. page frames allocated
+	  4. spec file
+	  5. page table
+   B. Methods
+	  1. access
+	  2. modify
+	  3. mmu
+
+** Page Table
+   A. Members
+	  1. 
+
+** Page Table Entry
+   A. Members
+      1. Logical address
+	  2. Physical address
+	  3. valid bit
+	  4. dirty bit
+	  5. ref info (timestamp)
+	  6. protection info
+   B. 
