@@ -53,12 +53,14 @@ void primaryThread::start() {
 		}
 		else if (action == "Create") {
 			int pid, psize;
-			initfile >> pid >> psize;
-			process *p = new process(pid, psize);
+			string uname;
+			initfile >> uname >> pid >> psize;
+			process *p = new process(pid, psize, uname);
 			processes[pid] = p;
 			shared_bundle.setup_new_process(pid);
 			thread *t = new thread(&process::start, p);
 			process_threads.push_back(t);
+			usleep(100000);
 		}
 		else if(action == "Page_table") {
 			cout << "printing page tables" << endl;
@@ -67,8 +69,44 @@ void primaryThread::start() {
 				it->second->page_table.print();
 			}
 		}
-		else {
-			cout << action << endl;
+		else if(action == "uname") {
+			string uname;
+			initfile >> uname;
+			shared_bundle.m.lock();
+			int rootblock = shared_bundle.dsk.get_root();
+			shared_bundle.dsk.mkdir(rootblock, uname.c_str());
+			shared_bundle.curdirs[uname] = shared_bundle.dsk.cd(rootblock, uname.c_str());
+			shared_bundle.m.unlock();
+		}
+		else if (action == "mkdir") {
+			string uname, dirname;
+			initfile >> uname >> dirname;
+			shared_bundle.m.lock();
+			int curdir = shared_bundle.curdirs[uname];
+			shared_bundle.dsk.mkdir(curdir, dirname.c_str());
+			shared_bundle.m.unlock();
+		}
+		else if (action == "cd") {
+			string uname, dirname;
+			initfile >> uname >> dirname;
+			shared_bundle.m.lock();
+			int curdir = shared_bundle.curdirs[uname];
+			int newdir = shared_bundle.dsk.cd(curdir, dirname.c_str());
+			if (newdir < 0) {
+				
+			}
+			else {
+				shared_bundle.curdirs[uname] = newdir;
+			}
+			shared_bundle.m.unlock();
+		}
+		else if (action == "ls") {
+			string uname;
+			initfile >> uname;
+			shared_bundle.m.lock();
+			int curdir = shared_bundle.curdirs[uname];
+			shared_bundle.dsk.ls(curdir);
+			shared_bundle.m.unlock();
 		}
 	}
 	for (int i = 0; i < process_threads.size(); i++) {

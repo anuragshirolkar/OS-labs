@@ -45,13 +45,14 @@ void stop_free_frames_manager() {
 
 int main()
 {
+	shared_bundle.dsk.initialize();
 	thread primary_thread_thread(&primaryThread::start, &primary_thread);
-	thread page_io_manager_thread(&pageIOManager::start, &page_io_manager);
-	thread free_frames_manager_thread(&freeFramesManager::start, &free_frames_manager);
+	//thread page_io_manager_thread(&pageIOManager::start, &page_io_manager);
+	//thread free_frames_manager_thread(&freeFramesManager::start, &free_frames_manager);
 	primary_thread_thread.join();
-	stop_io_manager();
-	page_io_manager_thread.join();
-	stop_free_frames_manager();
-	free_frames_manager_thread.join();
+	//stop_io_manager();
+	//page_io_manager_thread.join();
+	//stop_free_frames_manager();
+	//free_frames_manager_thread.join();
     return 0;
 }

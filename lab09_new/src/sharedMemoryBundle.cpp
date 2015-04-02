@@ -16,6 +16,7 @@
 #include "IOTable.cpp"
 #include "freeList.cpp"
 #include "invertedPageTable.cpp"
+#include "disk.cpp"
 using namespace std;
 
 struct sharedMemoryBundle
@@ -36,6 +37,10 @@ struct sharedMemoryBundle
 	map<int, bool> io_operation_finish_signals;
 	bool page_out_operation_finish_signal;
 	int free_frames_manager_signal;
+
+	// lab 09
+	disk dsk;
+	map<string, int> curdirs;
 	
 	sharedMemoryBundle();
 	void initialize_free_list();

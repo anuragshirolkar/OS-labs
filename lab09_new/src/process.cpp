@@ -29,15 +29,26 @@ struct process
 	pageTable page_table;
 	int access_count, modify_count, page_fault_count;
 
-	process(int, int);
+	// lab9
+	string filename;
+	int current_byte, first_block, file_dir_block;
+	string uname;
+
+	process(int, int, string);
 	void start();
 	void print_stats();
 	void operation(int, bool);
 	int page_fault_handler(int);
+	void open_file(string, int);
+	void seek(int);
+	void seek_relative(int);
+	void read_file(int);
+	void write_file(int, string);
 };
 
-process::process(int pid, int psize) {
+process::process(int pid, int psize, string u) {
 	// constructor
+	uname = u;
 	id = pid;
 	process_size = psize;
 	spec_file = SPEC_FILE_BASE + to_string(id);
@@ -60,18 +71,49 @@ void process::start() {
 		
 		if (action == "End") {
 			// no of access, modify, page faults should be printed
-			print_stats();
+			//print_stats();
 			break;
 		}
 		int page_no, word_no;
-		specfile >> page_no >> word_no;
 		if (action == "Access") {
+			specfile >> page_no >> word_no;
 			access_count++;
 			operation(page_no, false);
 		}
 		else if (action == "Modify") {
+			specfile >> page_no >> word_no;
 			modify_count++;
 			operation(page_no, true);
+		}
+		else if (action == "open") {
+			string filename;
+			specfile >> filename;
+			shared_bundle.m.lock();
+			int current_ulocn = shared_bundle.curdirs[uname];
+			shared_bundle.m.unlock();
+			open_file(filename, current_ulocn);
+		}
+		else if (action == "seek") {
+			int offset;
+			specfile >> offset;
+			seek(offset);
+		}
+		else if (action == "seek_relative") {
+			int offset;
+			specfile >> offset;
+			seek_relative(offset);			
+		}
+		else if (action == "read") {
+			string filename;
+			int nbytes;
+			specfile >> filename >> nbytes;
+			read_file(nbytes);
+		}
+		else if (action == "write") {
+			string filename, value;
+			int nbytes;
+			specfile >> filename >> nbytes >> value;
+			write_file(nbytes, value);
 		}
 		usleep(20);
 	}
@@ -160,3 +202,54 @@ int process::page_fault_handler(int page_no) {
 	
 	return frame_no;
 }
+
+void process::open_file(string filename, int dirblock) {
+	this->filename = filename;
+	file_dir_block = dirblock;
+	current_byte = 0;
+	shared_bundle.m.lock();
+	first_block = shared_bundle.dsk.open(dirblock, filename.c_str());
+	shared_bundle.m.unlock();
+	return;
+}
+
+void process::seek(int s){
+	cout << "Process " << id << " performing seek on file " << filename << endl; 
+	current_byte = s;
+	shared_bundle.m.lock();
+	shared_bundle.dsk.seek(first_block, current_byte);
+	shared_bundle.m.unlock();
+	return;
+}
+
+void process::seek_relative(int s) {
+	cout << "Process " << id << " performing seek_relative on file " << filename << endl; 
+	current_byte += s;
+	shared_bundle.m.lock();
+	shared_bundle.dsk.seek(first_block, current_byte);
+	shared_bundle.m.unlock();
+	return;
+}
+
+void process::read_file(int nbytes) {
+	cout << "Process " << id << " performing read on file " << filename << endl; 
+	char * value = new char[nbytes];
+	shared_bundle.m.lock();
+	int response = shared_bundle.dsk.read(first_block, current_byte, nbytes, value);
+	if (response == 0) {
+		cout << "Data Read by process " << id << " from file " << filename << ":" << endl;
+		fwrite(value, 1, nbytes, stdout);
+		cout << endl;
+	}
+	shared_bundle.m.unlock();
+	return;
+}
+
+void process::write_file(int nbytes, string value) {
+	cout << "Process " << id << " performing write on file " << filename << endl; 
+	shared_bundle.m.lock();
+	int response = shared_bundle.dsk.write(first_block, current_byte, nbytes, value.c_str());
+	shared_bundle.m.unlock();
+	return;
+}
+
