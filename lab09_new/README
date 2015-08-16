@@ -1,5 +1,8 @@
-#+TITLE: OS Lab08
-#+AUTHOR: Anurag Shirolkar (120050003), Dheerendra Rathor (120050033)
+#Implementation of Virtual memory and file system
+
+AUTHOR
+======
+Anurag Shirolkar (120050003), Dheerendra Rathor (120050033)
 
 to compile
 $ cd src
